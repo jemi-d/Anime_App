@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">Anime POC</string>
+    <string name="anime_series">Anime Series</string>
+    <string name="genres">Genres :</string>
+</resources>

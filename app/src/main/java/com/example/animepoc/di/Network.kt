@@ -16,6 +16,5 @@ object Network {
                 level = HttpLoggingInterceptor.Level.BODY
             }).build())
             .build()
-//            .create(ApiService::class.java)
     }
 }

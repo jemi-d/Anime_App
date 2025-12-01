@@ -21,4 +21,9 @@
         <item name="android:textAlignment">textStart</item>
     </style>
 
+    <style name="RoundedButtonShape">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">8dp</item> <!-- set radius -->
+    </style>
+
 </resources>

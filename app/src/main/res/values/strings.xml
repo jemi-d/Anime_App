@@ -2,4 +2,6 @@
     <string name="app_name">Anime POC</string>
     <string name="anime_series">Anime Series</string>
     <string name="genres">Genres :</string>
+    <string name="details_not_in_db">Details not in database</string>
+    <string name="play_trailer_cd">Play trailer</string>
 </resources>

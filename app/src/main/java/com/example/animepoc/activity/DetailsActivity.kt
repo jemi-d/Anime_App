@@ -1,22 +1,19 @@
 package com.example.animepoc.activity
 
-import AnimeDetails
 import android.os.Bundle
 import android.view.View
 import android.webkit.WebSettings
 import android.webkit.WebViewClient
-import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.ViewModelProvider
 import com.bumptech.glide.Glide
+import com.example.animepoc.MyApp
 import com.example.animepoc.R
 import com.example.animepoc.databinding.ActivityDetailsBinding
-import com.example.animepoc.di.ApiRepository
-import com.example.animepoc.di.ApiService
-import com.example.animepoc.di.Network
+import com.example.animepoc.local.AnimeDetailsEntity
 import com.example.animepoc.viewModel.AnimeViewModel
 import com.example.animepoc.viewModel.ViewModelFactory
 
@@ -39,29 +36,38 @@ class DetailsActivity : AppCompatActivity() {
         }
 
         // API
-        val repository = ApiRepository(Network.retrofit.create(ApiService::class.java))
-        val viewModelFactory = ViewModelFactory(repository)
-        animeViewModel = ViewModelProvider(this, viewModelFactory)[AnimeViewModel::class.java]
-        animeViewModel.animeDetails.observe(this, { detailsValue ->
-            setDetails(detailsValue)
-            binding.detailsProgressBar.visibility = View.GONE
-        })
-        animeViewModel.fetchAnimeDetails(id)
+        val repository = (application as MyApp).repository
+        val factory = ViewModelFactory(repository)
+        animeViewModel = ViewModelProvider(this, factory)[AnimeViewModel::class.java]
+
+        // Observe LiveData
+        animeViewModel.animeDetails.observe(this) { detailsValue ->
+            detailsValue?.let {
+                setDetails(it)
+                binding.detailsProgressBar.visibility = View.GONE
+            }
+        }
+
+        // Fetch details
+        if (id != -1) {
+            binding.detailsProgressBar.visibility = View.VISIBLE
+            animeViewModel.fetchAnimeDetails(id)
+        }
     }
 
-    private fun setDetails(value : AnimeDetails) {
+    private fun setDetails(value: AnimeDetailsEntity) {
         Glide.with(binding.detailsPosterImage)
-            .load(value.data.images.jpg.large_image_url)
+            .load(value.imageUrl)
             .into(binding.detailsPosterImage)
-        binding.detailsTitle.text = value.data.title
-        binding.detailsEpisodeNumber.text = value.data.episodes.toString()
+        binding.detailsTitle.text = value.title
+        binding.detailsEpisodeNumber.text = value.episodes.toString()
         binding.detailsRating.text = buildString {
             append("|  ")
-            append(value.data.rating)
+            append(value.rating)
         }
-        binding.detailsSynopsis.text = value.data.synopsis
-        if (!value.data.genres.isNullOrEmpty()) {
-            val genreTitles = value.data.genres.joinToString(", ") { it.name }
+        binding.detailsSynopsis.text = value.favorites.toString()
+        if (!value.genres.isNullOrEmpty()) {
+            val genreTitles = value.genres
             binding.detailsGenresValues.text = genreTitles
             binding.detailsGenresTitle.visibility = View.VISIBLE
             binding.detailsGenresValues.visibility = View.VISIBLE
@@ -70,14 +76,14 @@ class DetailsActivity : AppCompatActivity() {
             binding.detailsGenresValues.visibility = View.GONE
         }
 
-        if (!value.data.trailer.url.isNullOrEmpty()) {
+        if (!value.trailerUrl.isNullOrEmpty()) {
             binding.playIcon.visibility = View.VISIBLE
             binding.playIcon.setOnClickListener {
 
                 val webSettings: WebSettings = binding.webView.settings
                 webSettings.javaScriptEnabled = true
                 binding.webView.webViewClient = WebViewClient()
-                binding.webView.loadUrl(value.data.trailer.url)
+                binding.webView.loadUrl(value.trailerUrl)
                 binding.playIcon.visibility = View.GONE
                 binding.webView.visibility = View.VISIBLE
             }
